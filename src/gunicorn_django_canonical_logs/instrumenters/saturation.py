@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import os
 import re
+import time
 from functools import cached_property
 
 import psutil
@@ -20,8 +21,13 @@ class WorkerStatus:
 
 @register_instrumenter
 class SaturationInstrumenter(InstrumenterProtocol):
+    """Regularly samples saturation stats"""
     arbiter_regex = re.compile(r"gunicorn: master .* \[backlog: (\d+)\]")
     worker_regex = re.compile(r"gunicorn: worker .* \[status: (idle|busy)\]")
+
+    sample_interval_seconds = 10
+    last_sampled = 0
+    sample = None
 
     @cached_property
     def parent_process(self) -> psutil.Process:
@@ -54,13 +60,18 @@ class SaturationInstrumenter(InstrumenterProtocol):
 
 
     def call(self, _req, _resp, _environ):
-        saturation_data = {
-            "backlog": self.backlog,
-        }
-        worker_status = self.worker_status
-        if worker_status:
-            saturation_data.update({
-                "w_count": worker_status.count,
-                "w_active": worker_status.active,
-            })
-        Context.update(namespace="g", context=saturation_data)
+        now = time.time()
+        if now - self.last_sampled > self.sample_interval_seconds:
+            saturation_data = {
+                "backlog": self.backlog,
+            }
+            worker_status = self.worker_status
+            if worker_status:
+                saturation_data.update({
+                    "w_count": worker_status.count,
+                    "w_active": worker_status.active,
+                })
+
+            self.sample = saturation_data
+            self.last_sampled = now
+        Context.update(namespace="g", context=self.sample)
