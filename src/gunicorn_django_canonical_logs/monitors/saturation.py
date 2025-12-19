@@ -33,10 +33,15 @@ class BacklogMonitor:
         self.arbiter = arbiter
 
     def start(self):
-        while not self.shutdown_event.wait(timeout=1):
-            backlog = self.get_backlog()
-            if backlog is not None:
-                ProcTitle.set_arbiter(self.arbiter, backlog)
+        self.update_proctitle()
+
+        while not self.shutdown_event.wait(timeout=10):
+            self.update_proctitle()
+
+    def update_proctitle(self):
+        backlog = self.get_backlog()
+        if backlog is not None:
+            ProcTitle.set_arbiter(self.arbiter, backlog)
 
     @classmethod
     def shutdown(cls):
