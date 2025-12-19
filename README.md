@@ -265,7 +265,7 @@ g_backlog="0"
 
 * `g_w_count` (`int`) - total number of Gunicorn workers
 * `g_w_active` (`int`) - number of active Gunicorn workers
-* `g_w_backlog` (`int`) - number of queued requests
+* `g_backlog` (`int`) - number of queued requests
 
 > NB These values are sampled about once a second, and represent a snapshot. To derive useful data, average the values over time.
 
