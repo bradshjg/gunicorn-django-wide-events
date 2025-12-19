@@ -4,6 +4,7 @@ import socket
 import struct
 import sys
 import threading
+import time
 from typing import TYPE_CHECKING, cast
 
 from setproctitle import setproctitle
@@ -32,7 +33,14 @@ class BacklogMonitor:
     def __init__(self, arbiter: Arbiter):
         self.arbiter = arbiter
 
+    @classmethod
+    def shutdown(cls):
+        cls.shutdown_event.set()
+
     def start(self):
+        # HACK HACK HACK gunciorn sets the proctitle right after calling the ready hook.
+        # Sleeping for just a little it in the thread to reset it.
+        time.sleep(0.5)
         self.update_proctitle()
 
         while not self.shutdown_event.wait(timeout=10):
@@ -43,12 +51,8 @@ class BacklogMonitor:
         if backlog is not None:
             ProcTitle.set_arbiter(self.arbiter, backlog)
 
-    @classmethod
-    def shutdown(cls):
-        cls.shutdown_event.set()
-
     def get_backlog(self) -> int | None:
-        """Get the number of connections waiting to be accepted by a server"""
+        """Get the number of connections waiting to be accepted"""
         if sys.platform != "linux":
             return None
 
