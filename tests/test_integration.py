@@ -150,6 +150,8 @@ def test_saturation_event(server) -> None:
     logs = get_parsed_canonical_logs(stdout)
     assert len(logs) == 1
     assert logs[0]["g_w_count"] == str(workers)
+    assert logs[0]["g_w_active"] == "1"
+    assert logs[0]["g_backlog"] == "0"
 
 
 def test_exception_event(server) -> None:
