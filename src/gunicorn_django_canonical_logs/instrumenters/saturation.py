@@ -22,6 +22,7 @@ class WorkerStatus:
 @register_instrumenter
 class SaturationInstrumenter(InstrumenterProtocol):
     """Regularly samples saturation stats"""
+
     arbiter_regex = re.compile(r"gunicorn: master .* \[backlog: (\d+)\]")
     worker_regex = re.compile(r"gunicorn: worker .* \[status: (idle|busy)\]")
 
@@ -38,9 +39,10 @@ class SaturationInstrumenter(InstrumenterProtocol):
         return self.parent_process.children()
 
     @property
-    def backlog(self) -> str:
+    def backlog(self) -> str | None:
         if match := self.arbiter_regex.match(self.parent_process.cmdline()[0]):
             return match.group(1)
+        return None
 
     def active(self, worker_process: psutil.Process) -> bool:
         if match := self.worker_regex.match(worker_process.cmdline()[0]):
@@ -55,9 +57,8 @@ class SaturationInstrumenter(InstrumenterProtocol):
                 count=len(status),
                 active=sum(status),
             )
-        except:
+        except:  # noqa E722 S110 ignore worker stats if processes disappear while we're interrogating them
             pass
-
 
     def call(self, _req, _resp, _environ):
         now = time.time()
@@ -67,10 +68,12 @@ class SaturationInstrumenter(InstrumenterProtocol):
             }
             worker_status = self.worker_status
             if worker_status:
-                saturation_data.update({
-                    "w_count": worker_status.count,
-                    "w_active": worker_status.active,
-                })
+                saturation_data.update(
+                    {
+                        "w_count": worker_status.count,
+                        "w_active": worker_status.active,
+                    }
+                )
 
             self.sample = saturation_data
             self.last_sampled = now

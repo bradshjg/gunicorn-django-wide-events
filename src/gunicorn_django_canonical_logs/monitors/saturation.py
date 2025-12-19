@@ -18,12 +18,12 @@ if TYPE_CHECKING:
 
 class ProcTitle:
     @classmethod
-    def set_worker(cls, worker: Worker, busy: bool):
+    def set_worker(cls, *, worker: Worker, busy: bool):
         busy_text = "busy" if busy else "idle"
         setproctitle(f"gunicorn: worker [{worker.cfg.proc_name}] [status: {busy_text}]")
 
     @classmethod
-    def set_arbiter(cls, arbiter: Arbiter, backlog: int):
+    def set_arbiter(cls, *, arbiter: Arbiter, backlog: int):
         setproctitle(f"gunicorn: master [{arbiter.cfg.proc_name}] [backlog: {backlog}]")
 
 
@@ -49,7 +49,7 @@ class BacklogMonitor:
     def update_proctitle(self):
         backlog = self.get_backlog()
         if backlog is not None:
-            ProcTitle.set_arbiter(self.arbiter, backlog)
+            ProcTitle.set_arbiter(arbiter=self.arbiter, backlog=backlog)
 
     def get_backlog(self) -> int | None:
         """Get the number of connections waiting to be accepted"""
@@ -61,7 +61,10 @@ class BacklogMonitor:
             if not listener.sock:
                 continue
             listener_socket = cast(socket.socket, listener.sock)
-            if listener_socket.family not in (socket.AF_INET, socket.AF_INET6) or listener_socket.type != socket.SOCK_STREAM:
+            if (
+                listener_socket.family not in (socket.AF_INET, socket.AF_INET6)
+                or listener_socket.type != socket.SOCK_STREAM
+            ):
                 continue
 
             try:
@@ -70,7 +73,7 @@ class BacklogMonitor:
                 tcpi_unacked_index = 12
                 tcp_info_struct = listener.sock.getsockopt(socket.IPPROTO_TCP, socket.TCP_INFO, tcp_info_size)
                 unacked = struct.unpack(tcp_info_fmt, tcp_info_struct)[tcpi_unacked_index]
-            except:  # do our best :-)
+            except:  # noqa E722 S110 do our best :-)
                 continue
             else:
                 if total is None:
