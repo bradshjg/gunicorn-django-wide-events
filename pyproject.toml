@@ -27,6 +27,7 @@ dependencies = [
   "django",
   "gunicorn",
   "posix-ipc",
+  "psutil",
 ]
 
 [project.urls]

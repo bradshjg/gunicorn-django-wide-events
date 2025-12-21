@@ -1,6 +1,7 @@
 # noqa INP001 intentionally not a package, part of pytest tests
 from __future__ import annotations
 
+import concurrent.futures
 import os
 import re
 import shlex
@@ -34,6 +35,13 @@ def server_with_existing_logger_preserved() -> Generator[tuple[IO[str], IO[str]]
     """Gunicorn process running with log preservation enabled on localhost:8082"""
     yield from _run_server(
         bind="127.0.0.1:8082", app="tests.server.app", env={"GUNICORN_PRESERVE_EXISTING_LOGGER": "1"}
+    )
+
+@pytest.fixture(scope="module")
+def server_with_small_saturation_metrics_interval() -> Generator[tuple[IO[str], IO[str]], None, None]:
+    """Gunicorn process running with log preservation enabled on localhost:8082"""
+    yield from _run_server(
+        bind="127.0.0.1:8083", app="tests.server.app", env={"GUNICORN_SATURATION_METRICS_INTERVAL": "0.5"}
     )
 
 
@@ -310,3 +318,16 @@ def test_partial_failure_event(server) -> None:
     assert logs[0]["exc_cause_loc"].endswith("func_that_throws")
 
     assert logs[1]["event_type"] == "request"
+
+def test_saturation_metrics(server_with_small_saturation_metrics_interval):
+    server_stdout, _ = server_with_small_saturation_metrics_interval
+    clear_output(server_stdout)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(requests.get, "http://localhost:8083/sleep/?duration=1") for _ in range(3)]
+
+    concurrent.futures.wait(futures)
+
+    logs = get_parsed_canonical_logs(server_stdout, event_types=("timeout",))
+
+    assert logs == []

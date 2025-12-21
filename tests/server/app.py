@@ -90,7 +90,7 @@ def sleep(request):
 
 
 def rude_sleep(request):
-    duration = int(request.GET["duration"])
+    duration = float(request.GET["duration"])
     simulate_blocking_and_ignoring_signals(duration)
     return HttpResponse(f"Slept {duration} seconds!")
 
