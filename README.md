@@ -85,16 +85,7 @@ Additionally, `saturation_metrics` events will be regularly emitted.
 
 ## Example logs
 
-Examples can be generated from the app used for integration testing:
-
-* `cd tests/server`
-* `DJANGO_SETTINGS_MODULE=settings python app.py migrate`
-* `DJANGO_SETTINGS_MODULE=settings gunicorn -c gunicorn_config.py app`
-
-And then, from another shell:
-
-* `curl http://localhost:8080/db_queries/`
-* `curl http://localhost:8080/rude_sleep/?duration=10`
+The following logs are emitted space-separated but are presented newline-separated for readability.
 
 ### Request events
 
