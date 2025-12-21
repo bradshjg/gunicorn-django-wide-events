@@ -8,7 +8,6 @@ from gunicorn_django_canonical_logs.instrumenters import (  # noqa F401 register
     database,
     exception,
     request,
-    saturation,
 )
 from gunicorn_django_canonical_logs.instrumenters.registry import instrumenter_registry
 
