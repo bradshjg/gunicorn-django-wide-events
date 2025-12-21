@@ -20,7 +20,11 @@ def _filter_stack_summary(
     library_paths = sysconfig.get_paths().values()
     library_frames, app_frames = [], []
     for frame_summary in stack_summary:
-        if any(frame_summary.filename.startswith((path, os.path.realpath(path))) for path in library_paths):
+        if (
+            any(frame_summary.filename.startswith((path, os.path.realpath(path))) for path in library_paths)
+            # HACK support testing editable install
+            or "/src/gunicorn_django_canonical_logs/" in frame_summary.filename
+        ):
             library_frames.append(frame_summary)
         else:
             app_frames.append(frame_summary)
