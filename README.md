@@ -31,9 +31,10 @@
 
 ## Caveats
 
-This is alpha software. It has not (yet!) been battle-tested and patches the internals of libraries in order to support instrumentation in a way similar to OpenTelemetry libraries.
-
-It currently only supports the `sync` gunicorn worker type on Linux.
+> ![Important]
+> This is alpha software. It has not (yet!) been battle-tested and patches the internals of libraries in order to support instrumentation in a way similar to OpenTelemetry libraries.
+>
+> This library currently requires running Gunicorn on Linux using sync workers with TCP sockets.
 
 ## Installation
 
