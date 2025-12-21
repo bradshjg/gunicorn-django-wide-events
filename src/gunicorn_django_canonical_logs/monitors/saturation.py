@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 import posix_ipc
 import psutil
 
+from gunicorn_django_canonical_logs.event_context import EventContext
+from gunicorn_django_canonical_logs.logfmt import LogFmt
 from gunicorn_django_canonical_logs.gunicorn_hooks.registry import register_hook
 
 if TYPE_CHECKING:
@@ -18,7 +20,7 @@ if TYPE_CHECKING:
 
 class SaturationMonitor:
     shutdown_event = threading.Event()
-    INTERVAL_SECONDS = float(os.environ.get("GUNICORN_SATURATION_METRICS_INTEVAL", "10"))
+    INTERVAL_SECONDS = float(os.environ.get("GUNICORN_SATURATION_METRICS_INTERVAL", "10"))
 
     def __init__(self, arbiter: Arbiter):
         self.arbiter = arbiter
@@ -30,13 +32,25 @@ class SaturationMonitor:
             self._emit_metrics()
 
     def shutdown(self):
+        self.arbiter.log.info("Shutting down: Saturation monitor")
         self.shutdown_event.set()
 
     def _emit_metrics(self):
         backlog = self._get_backlog()
-        memory = self._get_memory()
+        memory_usage = self._get_memory_usage()
         workers = self._get_workers()
-        self.arbiter.log.info(f"{backlog=} {memory=} {workers=}")
+
+        saturation_metrics_context = EventContext()
+        saturation_metrics_context.set("type", "saturation_metrics", namespace="event")
+        metrics = {
+            "backlog": backlog,
+            "workers_total": workers[0],
+            "workers_idle": workers[1],
+            "memory_usage_mib": memory_usage,
+        }
+        saturation_metrics_context.update(context=metrics, namespace="g")
+
+        print(LogFmt.format(saturation_metrics_context), flush=True)
 
     def _get_backlog(self) -> int:
         """Get the number of connections waiting to be accepted by a server"""
@@ -53,12 +67,12 @@ class SaturationMonitor:
 
         return total
 
-    def _get_memory(self) -> int:
-        """Return memory usage in MB"""
+    def _get_memory_usage(self) -> int:
+        """Return memory usage in MiB"""
         arbiter_proc = psutil.Process(self.arbiter.pid)
         arbiter_pss = arbiter_proc.memory_full_info().pss
         workers_pss= sum([worker.memory_full_info().pss for worker in arbiter_proc.children()])
-        return arbiter_pss + workers_pss
+        return (arbiter_pss + workers_pss) >> 20  # bytes -> mB
 
     def _get_workers(self) -> tuple[int, int]:
         """Returns tuple of (total_workers, idle_workers)"""
@@ -75,13 +89,13 @@ def when_ready(arbiter: Arbiter):
 
 
 @register_hook
-def pre_fork(arbiter: Arbiter, worker: Worker):
-    worker.request_semaphore = posix_ipc.Semaphore((None, posix_ipc.O_CREX), initial_value=1)
+def pre_fork(_, worker: Worker):
+    worker.request_semaphore = posix_ipc.Semaphore(None, posix_ipc.O_CREX, initial_value=1)
 
 
 @register_hook
 def pre_request(worker: Worker, _):
-    worker.request_semaphore.acquire(1)
+    worker.request_semaphore.acquire()
 
 @register_hook
 def post_request(worker: Worker, *_):
