@@ -18,7 +18,6 @@
     - [Request intstrumenter](#request-instrumenter)
     - [Exception intstrumenter](#exception-instrumenter)
     - [Database intstrument](#database-instrumenter)
-    - [Saturation intstrument](#saturation-instrumenter)
   * [Default monitors](#default-monitors)
     - [Saturation monitor](#saturation-monitor)
     - [Timeout monitor](#timeout-monitor)
@@ -31,10 +30,10 @@
 
 ## Caveats
 
-> ![Important]
+> ![WARNING]
 > This is alpha software. It has not (yet!) been battle-tested and patches the internals of libraries in order to support instrumentation in a way similar to OpenTelemetry libraries.
 >
-> This library currently requires running Gunicorn on Linux using sync workers with TCP sockets.
+> This library currently requires running Gunicorn on Linux using sync workers listening on TCP sockets.
 
 ## Installation
 
@@ -273,10 +272,10 @@ g_memory_usage_mib="140"
 
 #### Saturation metrics
 
-* `total_workers` (`int`) - total number of Gunicorn workers
-* `active_workers` (`int`) - number of active Gunicorn workers
+* `g_workers_total` (`int`) - total number of Gunicorn workers
+* `g_workers_idle` (`int`) - number of idle Gunicorn workers available to process requests
 * `backlog` (`int`) - number of queued requests
-* `memory_mb` (`int`) - memory usage (in MB) across all gunicorn processes
+* `memory_usage_mib` (`int`) - memory usage (in MiB) across all Gunicorn processes
 
 > [!NOTE]
 > These values are regularly sampled, and represent a snapshot. To derive useful data, analyze the values over time.
