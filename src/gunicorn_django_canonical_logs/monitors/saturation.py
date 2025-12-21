@@ -101,11 +101,11 @@ class SaturationStatsShared:
 
     def set(self, *, stats: SaturationStats) -> None:
         values = [getattr(stats, field.name) for field in dataclasses.fields(stats)]
-        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, *values)
+        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, *values)  # type: ignore
 
     @property
     def value(self) -> SaturationStats:
-        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)
+        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)  # type: ignore
         return SaturationStats(*unpacked)
 
     def close(self) -> None:
@@ -144,11 +144,11 @@ class WorkerActiveShared:
         return self.shm.name
 
     def set(self, *, active: bool) -> None:
-        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, active)
+        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, active)  # type: ignore
 
     @property
     def value(self) -> bool:
-        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)
+        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)  # type: ignore
         return unpacked[0]
 
     def close(self) -> None:
