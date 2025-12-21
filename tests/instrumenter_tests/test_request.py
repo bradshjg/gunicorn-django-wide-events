@@ -1,4 +1,4 @@
-# noqa: INP001 intentionally not a package, part of pytest tests
+# noqa INP001 intentionally not a package, part of pytest tests
 import re
 
 import pytest
@@ -70,7 +70,7 @@ def test_request_404(client, settings):
 def test_request_500(client, settings):
     settings.MIDDLEWARE = [RequestInstrumenter().request_middleware_string_path]
 
-    with pytest.raises(match="Oh noes!"):
+    with pytest.raises(match="Oh noes!"):  # noqa PT010 exception type is internal to test app
         client.get("/view_exception/")
 
     expected_req_context = {

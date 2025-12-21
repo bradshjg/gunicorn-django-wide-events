@@ -32,8 +32,6 @@ Source = "https://github.com/bradshjg/gunicorn-django-canonical-logs"
 
 [project.optional-dependencies]
 test = [
-  "coverage-enable-subprocess==1.0",
-  "coverage[toml]~=7.4",
   "pytest~=8.1",
   "pytest-django~=4.11",
   "pytest-mock~=3.12",
@@ -59,7 +57,7 @@ extra-dependencies = [
 check = "mypy --install-types --non-interactive --ignore-missing-imports {args:src/gunicorn_django_canonical_logs tests}"
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.9", "3.13"]
+python = ["3.10", "3.13"]
 django = ["4.2", "latest"]
 
 [tool.hatch.envs.hatch-test]
@@ -67,7 +65,6 @@ extra-args = ["-vv"]
 features = [
   "test",
 ]
-dev-mode = false
 
 [tool.hatch.envs.hatch-test.overrides]
 matrix.django.dependencies = [
@@ -81,34 +78,14 @@ features = [
 ]
 
 [tool.hatch.envs.server]
-dev-mode = false
 features = [
   "test",
 ]
 
 [tool.hatch.envs.server.scripts]
-start = "gunicorn --bind 127.0.0.1:8888 -c gunicorn_config.py app"
+start = "cd tests/server && gunicorn --bind 127.0.0.1:8080 -c gunicorn_config.py app"
 
 [tool.pytest.ini_options]
 django_find_project = false
 DJANGO_SETTINGS_MODULE = "settings"
 pythonpath = "tests/server"
-
-[tool.coverage.run]
-source_pkgs = ["gunicorn_django_canonical_logs", "tests"]
-branch = true
-parallel = true
-omit = [
-  "src/gunicorn_django_canonical_logs/__about__.py",
-]
-
-[tool.coverage.paths]
-gunicorn_django_canonical_logs = ["src/gunicorn_django_canonical_logs", "*/gunicorn-django-canonical-logs/src/gunicorn_django_canonical_logs"]
-tests = ["tests", "*/gunicorn-django-canonical-logs/tests"]
-
-[tool.coverage.report]
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-]

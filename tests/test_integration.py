@@ -1,4 +1,4 @@
-# noqa: INP001 intentionally not a package, part of pytest tests
+# noqa INP001 intentionally not a package, part of pytest tests
 from __future__ import annotations
 
 import os
@@ -11,7 +11,7 @@ from typing import IO, TYPE_CHECKING
 
 import pytest
 import requests
-from server.gunicorn_config import workers
+from server import gunicorn_config
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
@@ -38,14 +38,14 @@ def server_with_existing_logger_preserved() -> Generator[tuple[IO[str], IO[str]]
 
 
 def _run_server(bind: str, app: str, env: dict[str, str] | None = None):
-    fp_stdout = tempfile.TemporaryFile(mode="w+")
-    fp_stderr = tempfile.TemporaryFile(mode="w+")
+    fp_stdout = tempfile.TemporaryFile(mode="w+")  # noqa SIM115
+    fp_stderr = tempfile.TemporaryFile(mode="w+")  # noqa SIM115
 
     process_env = os.environ.copy()
     if env:
         process_env.update(env)
     s_proc = subprocess.Popen(
-        ["gunicorn", "--bind", bind, "-c", "./tests/server/gunicorn_config.py", app],
+        ["gunicorn", "--bind", bind, "-c", gunicorn_config.__file__, app],
         stdout=fp_stdout,
         stderr=fp_stderr,
         bufsize=1,  # line buffered
@@ -149,7 +149,7 @@ def test_saturation_event(server) -> None:
 
     logs = get_parsed_canonical_logs(stdout)
     assert len(logs) == 1
-    assert logs[0]["g_w_count"] == str(workers)
+    assert logs[0]["g_w_count"] == str(gunicorn_config.workers)
 
 
 def test_exception_event(server) -> None:

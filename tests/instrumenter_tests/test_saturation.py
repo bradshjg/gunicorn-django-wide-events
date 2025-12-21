@@ -1,4 +1,4 @@
-# noqa: INP001 intentionally not a package, part of pytest tests
+# noqa INP001 intentionally not a package, part of pytest tests
 from collections.abc import Generator
 
 import pytest

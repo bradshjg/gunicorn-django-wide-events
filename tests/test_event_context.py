@@ -1,4 +1,4 @@
-# noqa: INP001 intentionally not a package, part of pytest tests
+# noqa INP001 intentionally not a package, part of pytest tests
 import time
 
 from gunicorn_django_canonical_logs.event_context import EventContext

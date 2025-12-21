@@ -28,7 +28,7 @@ else:
         def __init__(
             self,
             name: str | None = None,
-            create: bool = False,  # noqa: FBT001 FBT002
+            create: bool = False,  # noqa FBT001 FBT002
             size: int = 0,
             *,
             track: bool = True,
@@ -37,7 +37,7 @@ else:
 
             # if tracking, normal init will suffice
             if track:
-                return super().__init__(name=name, create=create, size=size)  # noqa: PLE0101
+                return super().__init__(name=name, create=create, size=size)  # noqa PLE0101
 
             # lock so that other threads don't attempt to use the
             # register function during this time
@@ -54,12 +54,12 @@ else:
                     _mprt.register = orig_register
 
         @staticmethod
-        def __tmp_register(*args, **kwargs) -> None:  # noqa: ARG004
+        def __tmp_register(*args, **kwargs) -> None:  # noqa ARG004
             return
 
         def unlink(self) -> None:
-            if _mpshm._USE_POSIX and self._name:  # noqa: SLF001
-                _mpshm._posixshmem.shm_unlink(self._name)  # noqa: SLF001
+            if _mpshm._USE_POSIX and self._name:  # noqa SLF001
+                _mpshm._posixshmem.shm_unlink(self._name)  # noqa SLF001
                 if self._track:
                     _mprt.unregister(self._name, "shared_memory")
 
@@ -101,11 +101,11 @@ class SaturationStatsShared:
 
     def set(self, *, stats: SaturationStats) -> None:
         values = [getattr(stats, field.name) for field in dataclasses.fields(stats)]
-        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, *values)
+        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, *values)  # type: ignore
 
     @property
     def value(self) -> SaturationStats:
-        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)
+        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)  # type: ignore
         return SaturationStats(*unpacked)
 
     def close(self) -> None:
@@ -144,11 +144,11 @@ class WorkerActiveShared:
         return self.shm.name
 
     def set(self, *, active: bool) -> None:
-        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, active)
+        struct.pack_into(self.STRUCT_FMT, self.shm.buf, 0, active)  # type: ignore
 
     @property
     def value(self) -> bool:
-        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)
+        unpacked = struct.unpack_from(self.STRUCT_FMT, self.shm.buf, 0)  # type: ignore
         return unpacked[0]
 
     def close(self) -> None:
