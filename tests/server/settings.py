@@ -3,7 +3,7 @@ from pathlib import Path
 
 ROOT_URLCONF = "app"
 
-DEBUG = os.environ.get("DEBUG", False) == "1"
+DEBUG = os.environ.get("DEBUG", "0") == "1"
 
 BASE_DIR = Path(__file__).resolve().parent
 

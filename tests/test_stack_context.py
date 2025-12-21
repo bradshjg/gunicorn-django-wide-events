@@ -1,4 +1,4 @@
-# noqa: INP001 intentionally not a package, part of pytest tests
+# noqa INP001 intentionally not a package, part of pytest tests
 import shutil
 import traceback
 
@@ -20,7 +20,7 @@ def func_that_throws_from_library():
 
 
 def test_app_code_is_cause_if_app_code_throws_directly():
-    with pytest.raises(CustomError) as e:  #
+    with pytest.raises(CustomError) as e:
         func_that_throws_directly()
     context = get_stack_loc_context(traceback.extract_tb(e.tb))
 

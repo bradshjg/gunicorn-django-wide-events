@@ -19,6 +19,6 @@ class InstrumenterProtocol(Protocol):
         """
         return None
 
-    def call(self, req: Request | None, resp: Response | None, environ: dict[str, Any] | None) -> None:  # noqa: ARG002 provides protocol
+    def call(self, req: Request | None, resp: Response | None, environ: dict[str, Any] | None) -> None:  # noqa ARG002 provides protocol
         """Override to add events to the context as necessary"""
         return None

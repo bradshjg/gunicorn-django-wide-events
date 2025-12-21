@@ -96,7 +96,7 @@ def rude_sleep(request):
 
 
 def db_queries(_):
-    from db.models import Person
+    from db.models import Person  # noqa PLC0415 lazily import after configuration
 
     p = Person(first_name="first", last_name="last")
     p.save()

@@ -1,4 +1,4 @@
-# noqa: INP001 intentionally not a package, part of pytest tests
+# noqa INP001 intentionally not a package, part of pytest tests
 from gunicorn_django_canonical_logs.gunicorn_hooks.registry import Hook, HookRegistry, hook_registry, register_hook
 
 

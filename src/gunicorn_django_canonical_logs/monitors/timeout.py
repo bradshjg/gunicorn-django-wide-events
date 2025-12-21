@@ -13,7 +13,7 @@ TIMEOUT_BUFFER_SECONDS = 0.2
 
 
 def on_timeout(timeout: int, worker: Worker, req: Request):
-    main_thread_frame = sys._current_frames()[threading.main_thread().ident or 0]  # noqa: SLF001 _current_frames is documented
+    main_thread_frame = sys._current_frames()[threading.main_thread().ident or 0]  # noqa SLF001 _current_frames is documented
     stack_summary = traceback.extract_stack(main_thread_frame)
     Context.set("time", timeout, namespace="resp")
     Context.update(namespace="timeout", context=get_stack_loc_context(stack_summary))

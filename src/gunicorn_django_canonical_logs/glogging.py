@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class Logger(glogging.Logger):
     EVENT_TYPE = "type"
     EVENT_NAMESPACE = "event"
-    PRESERVE_EXISTING_LOGGER = os.environ.get("GUNICORN_PRESERVE_EXISTING_LOGGER", False) == "1"
+    PRESERVE_EXISTING_LOGGER = os.environ.get("GUNICORN_PRESERVE_EXISTING_LOGGER", "0") == "1"
 
     def access(self, resp: Request, req: Request, environ: dict[str, Any], *_args, **_kwargs):
         # See https://github.com/bradshjg/gunicorn-django-canonical-logs/issues/7
