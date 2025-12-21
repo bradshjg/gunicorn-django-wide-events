@@ -82,7 +82,7 @@ A request will generate exactly one of these two `event_type`s:
 * `timeout` - the worker process timed out before returning a response
   - timeout events include a `timeout_loc`/`timeout_cause_loc`
 
-Additionally, a `saturation_metrics` event will be emitted regularly emitted separate from requests.
+Additionally, a `saturation_metrics` event will be emitted at an interval.
 
 ## Example logs
 
