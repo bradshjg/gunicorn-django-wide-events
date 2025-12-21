@@ -266,8 +266,8 @@ g_memory_usage_mib="140"
 > [!NOTE]
 > Only instruments the `requests` library
 
-* `http_requests` (`int`) - total number of queries executed
-* `http_request_time` (`float`) - total time spent executing queries (in seconds)
+* `http_requests` (`int`) - total number of HTTP requests
+* `http_request_time` (`float`) - total time spent executing HTTP requests (in seconds)
 
 #### Saturation metrics
 
