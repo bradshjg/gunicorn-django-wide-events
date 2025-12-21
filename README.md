@@ -30,7 +30,7 @@
 
 ## Caveats
 
-> ![WARNING]
+> [!WARNING]
 > This is alpha software. It has not (yet!) been battle-tested and patches the internals of libraries in order to support instrumentation in a way similar to OpenTelemetry libraries.
 >
 > This library currently requires running Gunicorn on Linux using sync workers listening on TCP sockets.
