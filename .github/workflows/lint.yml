@@ -1,4 +1,4 @@
-name: Test
+name: Lint
 
 on:
   push:
@@ -20,5 +20,8 @@ jobs:
       - name: Install hatch
         run: pipx install hatch
 
-      - name: Test
-        run: hatch test -ar
+      - name: Lint
+        run: hatch fmt --check
+
+      - name: Check types
+        run: hatch run types:check
