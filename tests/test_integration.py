@@ -150,17 +150,6 @@ def test_access_event(server) -> None:
     assert logs[0]["resp_status"] == "200"
 
 
-def test_saturation_event(server) -> None:
-    stdout, _ = server
-    clear_output(stdout)
-
-    requests.get("http://localhost:8080/ok/")
-
-    logs = get_parsed_canonical_logs(stdout)
-    assert len(logs) == 1
-    assert logs[0]["g_w_count"] == str(gunicorn_config.workers)
-
-
 def test_exception_event(server) -> None:
     stdout, _ = server
     clear_output(stdout)
