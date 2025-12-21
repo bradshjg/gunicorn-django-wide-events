@@ -228,10 +228,11 @@ g_backlog="0"
 <details><summary>Saturation metrics</summary>
 
 ```
-backlog="0"
-worker_count="5"
-workers_active="2"
-memory_mb="140"
+event_type="saturation_metrics"
+g_backlog="0"
+g_workers_total="5"
+g_workers_idle="3"
+g_memory_usage_mib="140"
 ```
 
 </details>
