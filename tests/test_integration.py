@@ -37,6 +37,7 @@ def server_with_existing_logger_preserved() -> Generator[tuple[IO[str], IO[str]]
         bind="127.0.0.1:8082", app="tests.server.app", env={"GUNICORN_PRESERVE_EXISTING_LOGGER": "1"}
     )
 
+
 @pytest.fixture(scope="module")
 def server_with_small_saturation_metrics_interval() -> Generator[tuple[IO[str], IO[str]], None, None]:
     """Gunicorn process running with log preservation enabled on localhost:8082"""
@@ -319,6 +320,7 @@ def test_partial_failure_event(server) -> None:
 
     assert logs[1]["event_type"] == "request"
 
+
 def test_saturation_metrics(server_with_small_saturation_metrics_interval):
     server_stdout, _ = server_with_small_saturation_metrics_interval
     clear_output(server_stdout)
@@ -343,5 +345,9 @@ def test_saturation_metrics(server_with_small_saturation_metrics_interval):
 
     assert 20 < int(saturation_metrics_events[0]["g_memory_usage_mib"]) < 100, "excepted reasonable memory usage"
 
-    assert any(all(event.get(k) == v for k, v in expected_saturated_event.items()) for event in saturation_metrics_events), "excepted saturated event"
-    assert any(all(event.get(k) == v for k, v in expected_idle_event.items()) for event in saturation_metrics_events), "excepted idle event"
+    assert any(
+        all(event.get(k) == v for k, v in expected_saturated_event.items()) for event in saturation_metrics_events
+    ), "excepted saturated event"
+    assert any(all(event.get(k) == v for k, v in expected_idle_event.items()) for event in saturation_metrics_events), (
+        "excepted idle event"
+    )

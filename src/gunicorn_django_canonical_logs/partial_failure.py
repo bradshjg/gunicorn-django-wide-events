@@ -34,7 +34,7 @@ def on_error(*, return_value):
                 partial_failure_context.set("id", request_id, namespace="req")
                 partial_failure_context.update(context=exc_context, namespace="exc")
 
-                print(LogFmt.format(partial_failure_context), flush=True)
+                print(LogFmt.format(partial_failure_context), flush=True)  # noqa T201 "logging" to stdout, skipping all formatters
 
                 return return_value
             else:
