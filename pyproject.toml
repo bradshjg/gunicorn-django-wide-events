@@ -67,7 +67,6 @@ extra-args = ["-vv"]
 features = [
   "test",
 ]
-dev-mode = false
 
 [tool.hatch.envs.hatch-test.overrides]
 matrix.django.dependencies = [
@@ -81,13 +80,12 @@ features = [
 ]
 
 [tool.hatch.envs.server]
-dev-mode = false
 features = [
   "test",
 ]
 
 [tool.hatch.envs.server.scripts]
-start = "gunicorn --bind 127.0.0.1:8888 -c gunicorn_config.py app"
+start = "gunicorn --bind 127.0.0.1:8080 -c gunicorn_config.py app"
 
 [tool.pytest.ini_options]
 django_find_project = false
