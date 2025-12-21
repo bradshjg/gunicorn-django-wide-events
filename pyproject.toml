@@ -83,7 +83,7 @@ features = [
 ]
 
 [tool.hatch.envs.server.scripts]
-start = "gunicorn --bind 127.0.0.1:8080 -c gunicorn_config.py app"
+start = "cd tests/server && gunicorn --bind 127.0.0.1:8080 -c gunicorn_config.py app"
 
 [tool.pytest.ini_options]
 django_find_project = false
