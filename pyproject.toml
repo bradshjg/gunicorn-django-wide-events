@@ -23,7 +23,11 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
 ]
-dependencies = ["django", "gunicorn"]
+dependencies = [
+  "django",
+  "gunicorn",
+  "posix-ipc",
+]
 
 [project.urls]
 Documentation = "https://github.com/bradshjg/gunicorn-django-canonical-logs#readme"
