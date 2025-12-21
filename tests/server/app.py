@@ -108,7 +108,7 @@ def db_queries(_):
 def http_requests(request):
     count = int(request.GET.get("count", "1"))
     for _ in range(count):
-        requests.get("https://www.google.com", timeout=2)
+        requests.get("https://www.google.com", timeout=2).raise_for_status()
     return HttpResponse(f"Made {count} HTTP requests!")
 
 
