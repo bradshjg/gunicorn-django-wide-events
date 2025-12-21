@@ -70,7 +70,7 @@ necessary, correlated logs provide the opportunity to monitor the frequency and 
 
 ## Overview
 
-The goal is to enhance obersvability by providing reasonable defaults and extensibility to answer two questions:
+The goal is to enhance obersvability by providing reasonable defaults and extensibility to answer:
 
 * If a request was processed, what did it do?
 * If a request timed out, what had it done and what was it doing?
@@ -80,9 +80,8 @@ A request will generate exactly one of these two `event_type`s:
 
 * `request` - the worker process was able to successfully process the request and return a response
 * `timeout` - the worker process timed out before returning a response
-  - timeout events include a `timeout_loc`/`timeout_cause_loc`
 
-Additionally, a `saturation_metrics` event will be emitted at an interval.
+Additionally, `saturation_metrics` events will be regularly emitted.
 
 ## Example logs
 
