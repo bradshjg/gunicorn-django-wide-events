@@ -4,7 +4,7 @@ from collections.abc import Generator
 import pytest
 
 from gunicorn_django_canonical_logs.event_context import Context
-from gunicorn_django_canonical_logs.instrumenters.http import HTTPRequestInstrumenter, HTTPRequestCollector
+from gunicorn_django_canonical_logs.instrumenters.http import HTTPRequestCollector, HTTPRequestInstrumenter
 
 
 @pytest.fixture

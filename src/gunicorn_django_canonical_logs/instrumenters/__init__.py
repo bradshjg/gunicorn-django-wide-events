@@ -7,8 +7,8 @@ from gunicorn_django_canonical_logs.gunicorn_hooks import register_hook
 from gunicorn_django_canonical_logs.instrumenters import (  # noqa F401 registers instrumenters
     database,
     exception,
-    request,
     http,
+    request,
 )
 from gunicorn_django_canonical_logs.instrumenters.registry import instrumenter_registry
 
