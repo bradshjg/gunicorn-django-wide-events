@@ -276,13 +276,21 @@ def test_preserve_existing_request_logger(server, server_with_existing_logger_pr
     requests.get("http://localhost:8080/ok/")  # existing logger disabled
     requests.get("http://localhost:8082/ok/")  # existing logger preserved
 
-    server_log_lines = read_log_lines(server_stdout)
-    server_with_existing_logger_preserved_log_lines = read_log_lines(server_with_existing_logger_preserved_stdout)
+    server_log_lines = [
+        line for line in read_log_lines(server_stdout) if not line.startswith('event_type="saturation_metrics"')
+    ]
+    server_with_existing_logger_preserved_log_lines = [
+        line
+        for line in read_log_lines(server_with_existing_logger_preserved_stdout)
+        if not line.startswith('event_type="saturation_metrics"')
+    ]
 
-    assert len(server_log_lines) == 1
+    assert len(server_log_lines) == 1, "expected one request event"
     assert server_log_lines[0].startswith('event_type="request"')
 
-    assert len(server_with_existing_logger_preserved_log_lines) == 2
+    assert len(server_with_existing_logger_preserved_log_lines) == 2, (
+        "expected one request event and one default logger request log line"
+    )
     assert server_with_existing_logger_preserved_log_lines[0].startswith("127.0.0.1")
     assert server_with_existing_logger_preserved_log_lines[1].startswith('event_type="request"')
 
