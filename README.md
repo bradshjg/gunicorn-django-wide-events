@@ -18,7 +18,6 @@
     - [Request intstrumenter](#request-instrumenter)
     - [Exception intstrumenter](#exception-instrumenter)
     - [Database intstrument](#database-instrumenter)
-    - [Saturation intstrument](#saturation-instrumenter)
   * [Default monitors](#default-monitors)
     - [Saturation monitor](#saturation-monitor)
     - [Timeout monitor](#timeout-monitor)
@@ -31,13 +30,10 @@
 
 ## Caveats
 
-This is alpha software. It has not (yet!) been battle-tested and does several risky things worth highlighting:
-
-* Overrides Django settings to include custom middleware to gather request/response context
-* Modifies Django template rendering and database query execution to gather template exception/database query context
-* Runs a separate timeout thread for every request to gather timeout context
-* Leverages shared memory between the Gunicorn arbiter and workers to gather saturation context
-  - There's currently no cleanup and processes that receive `SIGKILL` will leak memory
+> [!WARNING]
+> This is alpha software. It has not (yet!) been battle-tested and patches the internals of libraries in order to support instrumentation in a way similar to OpenTelemetry libraries.
+>
+> This library currently requires running Gunicorn on Linux using sync workers listening on TCP sockets.
 
 ## Installation
 
@@ -57,11 +53,12 @@ accesslog = "-"
 logger_class = Logger
 ```
 
-> [!IMPORTANT]
-> Only `sync` Gunicorn worker types are supported
+### Configuration
 
-> [!TIP]
-> Set `GUNICORN_PRESERVE_EXISTING_LOGGER=1` in the environment to preserve existing gunicorn access logs in addition to canonical logs
+Minimal configuration is available via environment variables:
+
+`GUNICORN_PRESERVE_EXISTING_LOGGER` (default `0`) - If set to `1`, will preserve existing gunicorn access logs in addition to canonical logs.
+`GUNICORN_SATURATION_METRICS_INTERVAL` (default `10`) - Interval in seconds to capture/emit saturation metrics.
 
 ### Partial failure
 
@@ -73,29 +70,22 @@ necessary, correlated logs provide the opportunity to monitor the frequency and 
 
 ## Overview
 
-The goal is to enhance obersvability by providing reasonable defaults and extensibility to answer two questions:
+The goal is to enhance obersvability by providing reasonable defaults and extensibility to answer:
 
 * If a request was processed, what did it do?
 * If a request timed out, what had it done and what was it doing?
+* Are we seeing queueing or memory pressure?
 
 A request will generate exactly one of these two `event_type`s:
 
 * `request` - the worker process was able to successfully process the request and return a response
 * `timeout` - the worker process timed out before returning a response
-  - timeout events include a `timeout_loc`/`timeout_cause_loc`
+
+Additionally, `saturation_metrics` events will be regularly emitted.
 
 ## Example logs
 
-Examples can be generated from the app used for integration testing:
-
-* `cd tests/server`
-* `DJANGO_SETTINGS_MODULE=settings python app.py migrate`
-* `DJANGO_SETTINGS_MODULE=settings gunicorn -c gunicorn_config.py app`
-
-And then, from another shell:
-
-* `curl http://localhost:8080/db_queries/`
-* `curl http://localhost:8080/rude_sleep/?duration=10`
+The following logs are emitted space-separated but are presented newline-separated for readability.
 
 ### Request events
 
@@ -115,9 +105,6 @@ db_queries="3"
 db_time="0.007"
 db_dup_queries="2"
 db_dup_time="0.003"
-g_w_count="1"
-g_w_active="0"
-g_backlog="0"
 ```
 
 </details>
@@ -134,9 +121,6 @@ resp_view="-"
 resp_time="0.000"
 resp_cpu_time="0.000"
 resp_status="404"
-g_w_count="1"
-g_w_active="0"
-g_backlog="0"
 ```
 
 </details>
@@ -229,6 +213,20 @@ g_backlog="0"
 
 </details>
 
+### Saturation metrics events
+
+<details><summary>Saturation metrics</summary>
+
+```
+event_type="saturation_metrics"
+g_backlog="0"
+g_workers_total="5"
+g_workers_idle="3"
+g_memory_usage_mib="140"
+```
+
+</details>
+
 ### Default instrumenters
 
 #### Request instrumenter
@@ -251,7 +249,8 @@ g_backlog="0"
 * `exc_cause_loc` (`string`) - `{module}:{line_number}:{name}` of the frame that threw the exception
 * `exc_template` (`string`) - `{template_name}:{line_number}` (if raised during template rendering)
 
-> NB There's some subtlety in how `loc`/`cause_loc` work; they attempt to provide application-relevant info by
+> [!NOTE]
+> There's some subtlety in how `loc`/`cause_loc` work; they attempt to provide application-relevant info by
 > ignoring frames in library code if application frames are available.
 
 #### Database instrumenter
@@ -261,20 +260,22 @@ g_backlog="0"
 * `db_dup_queries` (`int`) - total number of non-unique queries; could indicate N+1 issues
 * `db_dup_time` (`float`) - total time spent executing non-unique queries (in seconds); could indicate N+1 issues
 
-#### Saturation instrumenter
+#### Saturation metrics
 
-* `g_w_count` (`int`) - total number of Gunicorn workers
-* `g_w_active` (`int`) - number of active Gunicorn workers
-* `g_w_backlog` (`int`) - number of queued requests
+* `g_workers_total` (`int`) - total number of Gunicorn workers
+* `g_workers_idle` (`int`) - number of idle Gunicorn workers available to process requests
+* `backlog` (`int`) - number of queued requests
+* `memory_usage_mib` (`int`) - memory usage (in MiB) across all Gunicorn processes
 
-> NB These values are sampled about once a second, and represent a snapshot. To derive useful data, average the values over time.
+> [!NOTE]
+> These values are regularly sampled, and represent a snapshot. To derive useful data, analyze the values over time.
 
 ### Default monitors
 
 #### Saturation monitor
 
 The saturation monitor samples and aggregates Gunicorn data; it provides data on the current number of active/idle workers
-as well as the number of queued requests that have not been assigned to a worker.
+as well as the number of queued requests that have not been assigned to a worker and the memory usage.
 
 #### Timeout monitor
 

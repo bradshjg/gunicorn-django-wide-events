@@ -1,6 +1,7 @@
 # noqa INP001 intentionally not a package, part of pytest tests
 from __future__ import annotations
 
+import concurrent.futures
 import os
 import re
 import shlex
@@ -34,6 +35,14 @@ def server_with_existing_logger_preserved() -> Generator[tuple[IO[str], IO[str]]
     """Gunicorn process running with log preservation enabled on localhost:8082"""
     yield from _run_server(
         bind="127.0.0.1:8082", app="tests.server.app", env={"GUNICORN_PRESERVE_EXISTING_LOGGER": "1"}
+    )
+
+
+@pytest.fixture(scope="module")
+def server_with_small_saturation_metrics_interval() -> Generator[tuple[IO[str], IO[str]], None, None]:
+    """Gunicorn process running with log preservation enabled on localhost:8082"""
+    yield from _run_server(
+        bind="127.0.0.1:8083", app="tests.server.app", env={"GUNICORN_SATURATION_METRICS_INTERVAL": "0.5"}
     )
 
 
@@ -139,17 +148,6 @@ def test_access_event(server) -> None:
     assert len(logs) == 1
     assert logs[0]["req_path"] == "/ok/"
     assert logs[0]["resp_status"] == "200"
-
-
-def test_saturation_event(server) -> None:
-    stdout, _ = server
-    clear_output(stdout)
-
-    requests.get("http://localhost:8080/ok/")
-
-    logs = get_parsed_canonical_logs(stdout)
-    assert len(logs) == 1
-    assert logs[0]["g_w_count"] == str(gunicorn_config.workers)
 
 
 def test_exception_event(server) -> None:
@@ -278,13 +276,21 @@ def test_preserve_existing_request_logger(server, server_with_existing_logger_pr
     requests.get("http://localhost:8080/ok/")  # existing logger disabled
     requests.get("http://localhost:8082/ok/")  # existing logger preserved
 
-    server_log_lines = read_log_lines(server_stdout)
-    server_with_existing_logger_preserved_log_lines = read_log_lines(server_with_existing_logger_preserved_stdout)
+    server_log_lines = [
+        line for line in read_log_lines(server_stdout) if not line.startswith('event_type="saturation_metrics"')
+    ]
+    server_with_existing_logger_preserved_log_lines = [
+        line
+        for line in read_log_lines(server_with_existing_logger_preserved_stdout)
+        if not line.startswith('event_type="saturation_metrics"')
+    ]
 
-    assert len(server_log_lines) == 1
+    assert len(server_log_lines) == 1, "expected one request event"
     assert server_log_lines[0].startswith('event_type="request"')
 
-    assert len(server_with_existing_logger_preserved_log_lines) == 2
+    assert len(server_with_existing_logger_preserved_log_lines) == 2, (
+        "expected one request event and one default logger request log line"
+    )
     assert server_with_existing_logger_preserved_log_lines[0].startswith("127.0.0.1")
     assert server_with_existing_logger_preserved_log_lines[1].startswith('event_type="request"')
 
@@ -310,3 +316,35 @@ def test_partial_failure_event(server) -> None:
     assert logs[0]["exc_cause_loc"].endswith("func_that_throws")
 
     assert logs[1]["event_type"] == "request"
+
+
+def test_saturation_metrics(server_with_small_saturation_metrics_interval):
+    server_stdout, _ = server_with_small_saturation_metrics_interval
+    clear_output(server_stdout)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(requests.get, "http://localhost:8083/sleep/?duration=1") for _ in range(3)]
+
+    concurrent.futures.wait(futures)
+
+    expected_saturated_event = {
+        "g_backlog": "2",
+        "g_workers_idle": "0",
+        "g_workers_total": "1",
+    }
+    expected_idle_event = {
+        "g_backlog": "0",
+        "g_workers_idle": "1",
+        "g_workers_total": "1",
+    }
+
+    saturation_metrics_events = get_parsed_canonical_logs(server_stdout, event_types=("saturation_metrics",))
+
+    assert 20 < int(saturation_metrics_events[0]["g_memory_usage_mib"]) < 100, "excepted reasonable memory usage"
+
+    assert any(
+        all(event.get(k) == v for k, v in expected_saturated_event.items()) for event in saturation_metrics_events
+    ), "excepted saturated event"
+    assert any(all(event.get(k) == v for k, v in expected_idle_event.items()) for event in saturation_metrics_events), (
+        "excepted idle event"
+    )
