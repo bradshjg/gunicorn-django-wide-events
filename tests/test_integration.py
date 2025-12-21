@@ -328,6 +328,20 @@ def test_saturation_metrics(server_with_small_saturation_metrics_interval):
 
     concurrent.futures.wait(futures)
 
-    logs = get_parsed_canonical_logs(server_stdout, event_types=("timeout",))
+    expected_saturated_event = {
+        "g_backlog": "2",
+        "g_workers_idle": "0",
+        "g_workers_total": "1",
+    }
+    expected_idle_event = {
+        "g_backlog": "0",
+        "g_workers_idle": "1",
+        "g_workers_total": "1",
+    }
 
-    assert logs == []
+    saturation_metrics_events = get_parsed_canonical_logs(server_stdout, event_types=("saturation_metrics",))
+
+    assert 20 < int(saturation_metrics_events[0]["g_memory_usage_mib"]) < 100, "excepted reasonable memory usage"
+
+    assert any(all(event.get(k) == v for k, v in expected_saturated_event.items()) for event in saturation_metrics_events), "excepted saturated event"
+    assert any(all(event.get(k) == v for k, v in expected_idle_event.items()) for event in saturation_metrics_events), "excepted idle event"
