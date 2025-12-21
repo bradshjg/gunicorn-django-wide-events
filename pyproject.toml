@@ -57,7 +57,7 @@ extra-dependencies = [
 check = "mypy --install-types --non-interactive --ignore-missing-imports {args:src/gunicorn_django_canonical_logs tests}"
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.9", "3.13"]
+python = ["3.10", "3.13"]
 django = ["4.2", "latest"]
 
 [tool.hatch.envs.hatch-test]
