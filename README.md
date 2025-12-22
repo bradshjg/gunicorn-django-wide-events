@@ -17,7 +17,8 @@
   * [Default intstrumenters](#default-instrumenters)
     - [Request intstrumenter](#request-instrumenter)
     - [Exception intstrumenter](#exception-instrumenter)
-    - [Database intstrument](#database-instrumenter)
+    - [Database intstrumenter](#database-instrumenter)
+    - [HTTP intstrumenter](#http-instrumenter)
   * [Default monitors](#default-monitors)
     - [Saturation monitor](#saturation-monitor)
     - [Timeout monitor](#timeout-monitor)
@@ -259,6 +260,14 @@ g_memory_usage_mib="140"
 * `db_time` (`float`) - total time spent executing queries (in seconds)
 * `db_dup_queries` (`int`) - total number of non-unique queries; could indicate N+1 issues
 * `db_dup_time` (`float`) - total time spent executing non-unique queries (in seconds); could indicate N+1 issues
+
+#### HTTP instrumenter
+
+> [!NOTE]
+> Only instruments the `requests` library
+
+* `http_requests` (`int`) - total number of HTTP requests
+* `http_request_time` (`float`) - total time spent executing HTTP requests (in seconds)
 
 #### Saturation metrics
 

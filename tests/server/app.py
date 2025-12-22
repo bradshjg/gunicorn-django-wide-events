@@ -84,7 +84,7 @@ def custom_timing(_):
 
 
 def sleep(request):
-    duration = float(request.GET["duration"])
+    duration = float(request.GET.get("duration", "1"))
     simulate_blocking(duration)
     return HttpResponse(f"Slept {duration} seconds!")
 
@@ -103,6 +103,13 @@ def db_queries(_):
     p.refresh_from_db()
     p.refresh_from_db()
     return HttpResponse("OK")
+
+
+def http_requests(request):
+    count = int(request.GET.get("count", "1"))
+    for _ in range(count):
+        requests.get("https://www.google.com", timeout=2).raise_for_status()
+    return HttpResponse(f"Made {count} HTTP requests!")
 
 
 def simulate_blocking(duration):
@@ -129,6 +136,7 @@ urlpatterns = [
     path("sleep/", sleep),
     path("rude_sleep/", rude_sleep),
     path("db_queries/", db_queries),
+    path("http_requests/", http_requests),
     path("partial_failure/", partial_failure),
 ]
 

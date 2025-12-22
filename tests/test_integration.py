@@ -194,6 +194,19 @@ def test_db_event(server) -> None:
     assert logs[0]["db_queries"] == "3"
 
 
+def test_http_request_event(server) -> None:
+    stdout, _ = server
+    clear_output(stdout)
+
+    requests.get("http://localhost:8080/http_requests/")
+
+    logs = get_parsed_canonical_logs(stdout)
+    assert len(logs) == 1
+    assert logs[0]["resp_status"] == "200"
+    assert logs[0]["http_requests"] == "1"
+    assert float(logs[0]["http_request_time"]) > 0
+
+
 def test_custom_event(server) -> None:
     stdout, _ = server
     clear_output(stdout)
