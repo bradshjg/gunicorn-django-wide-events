@@ -227,6 +227,9 @@ def test_custom_timing(server) -> None:
     logs = get_parsed_canonical_logs(stdout)
     assert len(logs) == 1
     assert re.search(r"0.2\d{2}", logs[0]["app_custom_time"])
+    assert logs[0].get("app_custom_count") is None
+    assert re.search(r"0.4\d{2}", logs[0]["app_custom_multiple_time"])
+    assert "2", logs[0]["app_custom_multiple_count"]
 
 
 def test_app_instrumenter(server) -> None:
