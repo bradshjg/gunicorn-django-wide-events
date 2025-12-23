@@ -80,6 +80,12 @@ def custom_timing(_):
     with Context.time("custom"):
         time.sleep(0.2)
 
+    with Context.time("custom_multiple"):
+        time.sleep(0.2)
+
+    with Context.time("custom_multiple"):
+        time.sleep(0.2)
+
     return HttpResponse("OK!")
 
 
