@@ -229,7 +229,7 @@ def test_custom_timing(server) -> None:
     assert re.search(r"0.2\d{2}", logs[0]["app_custom_time"])
     assert logs[0].get("app_custom_count") is None
     assert re.search(r"0.4\d{2}", logs[0]["app_custom_multiple_time"])
-    assert "2", logs[0]["app_custom_multiple_count"]
+    assert logs[0]["app_custom_multiple_count"] == "2"
 
 
 def test_app_instrumenter(server) -> None:

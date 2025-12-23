@@ -23,7 +23,7 @@ class EventContext:
     @contextmanager
     def time(self, key: str, *, namespace: str = DEFAULT_NAMESPACE) -> Generator[None, None, None]:
         # HACK lazy import to get around circular dependency
-        from gunicorn_django_canonical_logs.instrumenters.custom_timing import CustomTimingCollector
+        from gunicorn_django_canonical_logs.instrumenters.custom_timing import CustomTimingCollector  # noqa PLC0415
 
         with CustomTimingCollector.instrument(key, namespace):
             yield
