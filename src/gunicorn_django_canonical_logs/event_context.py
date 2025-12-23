@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
@@ -23,19 +22,11 @@ class EventContext:
 
     @contextmanager
     def time(self, key: str, *, namespace: str = DEFAULT_NAMESPACE) -> Generator[None, None, None]:
-        key = f"{key}_time"
-        try:
-            current_timing = float(self.get(key, namespace=namespace))
-        except (TypeError, ValueError):  # overrides value if it's not parseable as a float
-            current_timing = 0
-            self.set(key, current_timing, namespace=namespace)
-        start = time.monotonic()
-        try:
+        # HACK lazy import to get around circular dependency
+        from gunicorn_django_canonical_logs.instrumenters.custom_timing import CustomTimingCollector
+
+        with CustomTimingCollector.instrument(key, namespace):
             yield
-        finally:
-            timing = time.monotonic() - start
-            current_timing += timing
-            self.set(key, f"{current_timing:.3f}", namespace=namespace)
 
     def update(self, *, context: dict[str, Any], namespace: str = DEFAULT_NAMESPACE, beginning: bool = False) -> None:
         self._context[namespace].update(context)
