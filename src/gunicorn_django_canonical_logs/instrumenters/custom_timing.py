@@ -26,7 +26,7 @@ class CustomTimingCollector:
 
     @classmethod
     def get_data(cls) -> dict[str, dict[str, int | float]]:
-        data: dict[str, dict[str, str, int | float]] = defaultdict(dict)
+        data: dict[str, dict[str, int | float]] = defaultdict(dict)
         for namespace, namespace_context in cls._data.items():
             for key in namespace_context:
                 data[namespace][f"{key}_time"] = cls._data[namespace][key]["duration"]
