@@ -317,7 +317,8 @@ with Context.time("custom"):
 ```
 
 This would add `app_custom_time="{wall time in seconds}"` to the log for the current request based on the execution
-time of `do_thing_that_takes_time()`; multiple timings using the same key are summed.
+time of `do_thing_that_takes_time()`; multiple timings using the same key are summed and a `app_custom_count` key is
+added for the call count.
 
 ### Custom instrumenters
 
